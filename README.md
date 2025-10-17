@@ -1,6 +1,6 @@
 # cargo-minimize
 
-Install with `cargo install --git https://github.com/Noratrieb/cargo-minimize cargo-minimize` and use with `cargo minimize`.
+Install with `cargo install --git https://github.com/Noratrieb/cargo-minimize cargo-minimize --locked` and use with `cargo minimize`.
 
 For more info, see the [cookbook](https://github.com/Noratrieb/cargo-minimize#cookbook).
 
