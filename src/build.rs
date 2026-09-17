@@ -11,6 +11,7 @@ use std::{
 };
 
 use crate::{EnvVar, Options, dylib_flag::RustFunction};
+use crate::processor::interactive;
 
 #[derive(Debug, Clone)]
 pub struct Build {
@@ -147,93 +148,18 @@ impl Build {
             });
         }
 
-        let (is_ice, cmd_status, output) = match &inner.mode {
-            BuildMode::Cargo {
-                cargo_path,
-                subcommand,
-            } => {
-                let mut cmd = self.cmd(cargo_path);
-
-                cmd.args(subcommand);
-
-                if inner.allow_color {
-                    cmd.arg("--color=always");
-                }
-
-                extra_cargoflags(&mut cmd);
-
-                cmd.args(&inner.extra_args);
-
-                for env in &inner.env {
-                    cmd.env(&env.key, &env.value);
-                }
-
-                let outputs = cmd.output().context("spawning rustc process")?;
-
-                let output = String::from_utf8(outputs.stderr)?;
-
-                (
-                    // Cargo always exits with 101 when rustc has an error.
-                    output.contains("internal compiler error") || output.contains("' panicked at"),
-                    outputs.status,
-                    output,
-                )
-            }
-            BuildMode::Rustc(rustc) => {
-                let mut cmd = self.cmd(rustc);
-                cmd.args(["--edition", "2021"]);
-                cmd.arg(&inner.input_path);
-
-                if inner.allow_color {
-                    cmd.arg("--color=always");
-                }
-
-                cmd.args(&inner.extra_args);
-
-                for env in &inner.env {
-                    cmd.env(&env.key, &env.value);
-                }
-
-                let outputs = cmd.output().context("spawning rustc process")?;
-
-                let output = String::from_utf8(outputs.stderr)?;
-
-                (
-                    outputs.status.code() == Some(101)
-                        || output.contains("internal compiler error"),
-                    outputs.status,
-                    output,
-                )
-            }
-            BuildMode::Script(script_path) => {
-                let mut cmd = self.cmd(script_path);
-
-                cmd.args(&inner.extra_args);
-
-                for env in &inner.env {
-                    cmd.env(&env.key, &env.value);
-                }
-
-                let outputs = cmd
-                    .output()
-                    .with_context(|| format!("spawning script: `{cmd:?}`"))?;
-
-                let output = String::from_utf8(outputs.stderr)?;
-
-                (outputs.status.success(), outputs.status, output)
-            }
-        };
-
+        interactive::launch_repro();
+        let is_ice = interactive::repro_by_keystrokes();
         let reproduces_issue = match inner.verify {
             Verify::None => unreachable!("handled ealier"),
             Verify::Ice => is_ice,
-            Verify::Custom(func) => func.call(&output, cmd_status.code()),
+            Verify::Custom(func) => unimplemented!(),
         };
 
         Ok(BuildResult {
             reproduces_issue,
             no_verify: false,
-            output,
+            output: String::new(),
             allow_color: inner.allow_color,
         })
     }

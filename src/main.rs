@@ -5,15 +5,16 @@ use std::sync::{
     Arc,
     atomic::{AtomicBool, Ordering},
 };
+use std::{thread, time};
 
 use anyhow::Result;
-use cargo_minimize::{Cargo, Parser};
+use cargo_minimize_oom::{Cargo, Parser};
 use tracing::{Level, error};
 
 fn main() -> Result<()> {
-    let Cargo::Minimize(options) = Cargo::parse();
+    let Cargo::Minimize_OOM(options) = Cargo::parse();
 
-    cargo_minimize::init_recommended_tracing_subscriber(Level::INFO);
+    cargo_minimize_oom::init_recommended_tracing_subscriber(Level::INFO);
 
     let cancel = Arc::new(AtomicBool::new(false));
     let cancel2 = Arc::clone(&cancel);
@@ -35,5 +36,7 @@ fn main() -> Result<()> {
         error!("Failed to install CTRL-C handler: {err}");
     }
 
-    cargo_minimize::minimize(options, cancel2)
+    let amount = time::Duration::from_secs(4);
+    thread::sleep(amount);
+    cargo_minimize_oom::minimize(options, cancel2)
 }

@@ -22,10 +22,10 @@ impl Minimizer {
             return Ok(());
         }
 
-        let inital_build = self.build.build()?;
-        info!("Before reaper: {inital_build}");
+        let initial_build = self.build.build()?;
+        info!("Before reaper: {initial_build}");
 
-        inital_build.require_reproduction("Initial")?;
+        initial_build.require_reproduction("Initial")?;
 
         let (diags, suggestions) = self
             .build

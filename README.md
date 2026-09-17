@@ -1,8 +1,14 @@
 # cargo-minimize
 
-Install with `cargo install --git https://github.com/Noratrieb/cargo-minimize cargo-minimize --locked` and use with `cargo minimize`.
+Install with `cargo install --git https://github.com/JorgeCepeda/cargo-minimize-oom cargo-minimize-oom --locked` and use with `cargo minimize-oom`.
 
 For more info, see the [cookbook](https://github.com/Noratrieb/cargo-minimize#cookbook).
+
+## Fork
+
+This is a fork of [`cargo-minimize`](https://github.com/Noratrieb/cargo-minimize), and adds an interactive mode, specifically for minimizing OOMs. It listens to LeftArrow and RightArrow presses to revert or confirm file changes respectively. The idea is that the user stops the build before the OOM to prevent system crashes.
+
+Relaunches the build via UpArrow + Enter. The build must be run in a different terminal than this tool.
 
 ## Idea
 
@@ -38,7 +44,7 @@ Options:
       --project-dir <PROJECT_DIR>
           The working directory where cargo/rustc are invoked in. By default, this is the current working directory
       --passes <PASSES>
-          A comma-seperated list of passes that should be enabled. By default, all passes are enabled. If a pass is prefixed with `no-`, it will be disabled
+          A comma-separated list of passes that should be enabled. By default, all passes are enabled. If a pass is prefixed with `no-`, it will be disabled
       --script-path <SCRIPT_PATH>
           A path to a script that is run to check whether code reproduces. When it exits with code 0, the problem reproduces. If `--script-path-lints` isn't set, this script is also run to get lints. For lints, the `MINIMIZE_LINTS` environment variable will be set to `1`. The first line of the lint stdout or stderr can be `minimize-fmt-rustc` or `minimize-fmt-cargo` to show whether the rustc or wrapper cargo lint format and which output stream is used. Defaults to cargo and stdout
       --script-path-lints <SCRIPT_PATH_LINTS>

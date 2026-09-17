@@ -3,12 +3,12 @@ members = ["./", "./testsuite"]
 exclude = ["test-cases/*", "full-tests/*"]
 
 [package]
-name = "cargo-minimize"
+name = "cargo-minimize-oom"
 version = "0.1.0"
 edition = "2024"
 categories = ["development-tools"]
-description = "A tool for minimizing rustc ICEs"
-keywords = ["minimization", "ICE", "rust-development"]
+description = "A tool for minimizing rustc ICEs, specially OOMs"
+keywords = ["minimization", "ICE", "rust-development", "OOM"]
 license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -37,3 +37,6 @@ tracing = "0.1.37"
 tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
 tracing-tree = "0.2.2"
 walkdir = "2.3.2"
+
+# Keyboard I/O
+winput = { version = "0.2.5", features = ["message_loop"] }

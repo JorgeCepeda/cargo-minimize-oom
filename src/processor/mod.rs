@@ -1,6 +1,7 @@
 mod checker;
 mod files;
 mod reaper;
+pub mod interactive;
 
 pub(crate) use self::files::SourceFile;
 use crate::{Options, build::Build, processor::files::Changes};
@@ -152,9 +153,9 @@ impl Minimizer {
         &self,
         passes: impl IntoIterator<Item = Box<dyn Pass + 'a>>,
     ) -> Result<()> {
-        let inital_build = self.build.build()?;
-        info!("Initial build: {inital_build}");
-        inital_build.require_reproduction("Initial")?;
+        let initial_build = self.build.build()?;
+        info!("Initial build: {initial_build}");
+        initial_build.require_reproduction("Initial")?;
 
         for mut pass in passes {
             if !self.pass_enabled(pass.name()) {
