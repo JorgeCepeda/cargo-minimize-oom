@@ -197,3 +197,7 @@ impl Default for Options {
         }
     }
 }
+
+pub fn stop_keyboard_io() {
+    processor::interactive::stop();
+}

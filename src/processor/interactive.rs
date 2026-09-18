@@ -33,3 +33,7 @@ pub fn repro_by_keystrokes() -> bool {
         }
     }
 }
+
+pub fn stop() {
+    winput::message_loop::stop();
+}

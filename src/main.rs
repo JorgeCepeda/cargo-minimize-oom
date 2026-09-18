@@ -30,6 +30,7 @@ fn main() -> Result<()> {
         warn!("Shutting down gracefully, press CTRL-C again to kill");
         cancel.store(true, Ordering::SeqCst);
         ctrl_c_pressed = true;
+        cargo_minimize_oom::stop_keyboard_io();
     });
 
     if let Err(err) = result {
@@ -38,5 +39,7 @@ fn main() -> Result<()> {
 
     let amount = time::Duration::from_secs(4);
     thread::sleep(amount);
-    cargo_minimize_oom::minimize(options, cancel2)
+    let res = cargo_minimize_oom::minimize(options, cancel2);
+    cargo_minimize_oom::stop_keyboard_io();
+    res
 }
