@@ -33,7 +33,7 @@ pub use clap::Parser;
 #[derive(clap::Parser)]
 #[command(version, about, name = "cargo", bin_name = "cargo")]
 pub enum Cargo {
-    Minimize_OOM(Options),
+    MinimizeOOM(Options),
 }
 
 #[derive(clap::Args, Debug, Clone)]

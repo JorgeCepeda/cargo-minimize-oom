@@ -12,7 +12,7 @@ use cargo_minimize_oom::{Cargo, Parser};
 use tracing::{Level, error};
 
 fn main() -> Result<()> {
-    let Cargo::Minimize_OOM(options) = Cargo::parse();
+    let Cargo::MinimizeOOM(options) = Cargo::parse();
 
     cargo_minimize_oom::init_recommended_tracing_subscriber(Level::INFO);
 

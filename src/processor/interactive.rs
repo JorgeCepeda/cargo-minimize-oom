@@ -17,7 +17,7 @@ pub fn launch_repro() {
 }
 
 /// LeftArrow means false, RightArrow means true
-pub fn repro_by_keystrokes() -> bool {
+pub fn await_repro_result() -> bool {
     RECEIVER.with(|r| r.clear());
     loop {
         let event = RECEIVER.with(|r| r.next_event());
@@ -27,6 +27,22 @@ pub fn repro_by_keystrokes() -> bool {
                      return true;
                  } else if vk == Vk::LeftArrow && action == Action::Press {
                      return false;
+                 }
+            },
+            _ => ()
+        }
+    }
+}
+
+/// The user signals ready for being sent keystrokes by pressing DownArrow
+pub fn await_ready() {
+    RECEIVER.with(|r| r.clear());
+    loop {
+        let event = RECEIVER.with(|r| r.next_event());
+        match event {
+             message_loop::Event::Keyboard { vk, action, .. } => {
+                 if vk == Vk::DownArrow && action == Action::Press {
+                     return;
                  }
             },
             _ => ()

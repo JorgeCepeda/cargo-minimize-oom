@@ -27,6 +27,11 @@ impl Minimizer {
 
         initial_build.require_reproduction("Initial")?;
 
+        println!("Manual work! Go on an adventure and feed me well-formed diagnostics in UTF-8 BOM-less for the last build (each round) via path.");
+        println!("Hint: you may use something like `cargo build --message-format=json > diagnostics.json`.");
+        println!("If the build hangs, the .json may still be well-formed if you let it run for a bit.");
+        println!("You can fix a malformed .json by removing the last diagnostic.");
+
         let (diags, suggestions) = self
             .build
             .get_diags()

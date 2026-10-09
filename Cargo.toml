@@ -4,7 +4,7 @@ exclude = ["test-cases/*", "full-tests/*"]
 
 [package]
 name = "cargo-minimize-oom"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 categories = ["development-tools"]
 description = "A tool for minimizing rustc ICEs, specially OOMs"

@@ -8,6 +8,7 @@ use std::{
     path::PathBuf,
     process::Command,
     rc::Rc,
+    io::Write,
 };
 
 use crate::{EnvVar, Options, dylib_flag::RustFunction};
@@ -149,11 +150,11 @@ impl Build {
         }
 
         interactive::launch_repro();
-        let is_ice = interactive::repro_by_keystrokes();
+        let is_ice = interactive::await_repro_result();
         let reproduces_issue = match inner.verify {
             Verify::None => unreachable!("handled ealier"),
             Verify::Ice => is_ice,
-            Verify::Custom(func) => unimplemented!(),
+            Verify::Custom(_) => unimplemented!(),
         };
 
         Ok(BuildResult {
@@ -165,91 +166,29 @@ impl Build {
     }
 
     pub fn get_diags(&self) -> Result<(Vec<Diagnostic>, Vec<rustfix::Suggestion>)> {
-        fn grab_rustc_diags(output: &str) -> Result<Vec<Diagnostic>> {
-            serde_json::Deserializer::from_str(output)
-                .into_iter::<Diagnostic>()
-                .collect::<Result<_, _>>()
-                .map_err(Into::into)
-        }
+        print!("Enter the updated diags path: ");
+        std::io::stdout().flush().unwrap();
 
-        let inner = &self.inner;
+        let mut path = String::new();
+        std::io::stdin().read_line(&mut path)
+            .expect("Error flushing");
+        path = path.trim().to_string();
 
-        fn grab_cargo_diags(output: &str) -> Result<Vec<Diagnostic>> {
-            let messages = serde_json::Deserializer::from_str(output)
-                .into_iter::<CargoJsonCompileMessage>()
-                .collect::<Result<Vec<_>, _>>()?;
+        println!("Press down arrow when ready to repro...");
+        interactive::await_ready();
 
-            Ok(messages
-                .into_iter()
-                .filter(|msg| msg.reason == "compiler-message")
-                .filter_map(|msg| msg.message)
-                .collect())
-        }
+        let cmd_output = std::fs::read(path)?;
+        let output = String::from_utf8(cmd_output)?;
 
-        let diags = match &inner.lint_mode {
-            BuildMode::Cargo {
-                cargo_path,
-                subcommand,
-            } => {
-                let mut cmd = self.cmd(cargo_path);
+        let messages = serde_json::Deserializer::from_str(output.as_str())
+            .into_iter::<CargoJsonCompileMessage>()
+            .collect::<Result<Vec<_>, _>>()?;
 
-                cmd.args(subcommand);
-
-                cmd.arg("--message-format=json");
-
-                extra_cargoflags(&mut cmd);
-
-                cmd.args(&inner.extra_args);
-
-                for env in &inner.env {
-                    cmd.env(&env.key, &env.value);
-                }
-
-                let cmd_output = cmd.output()?;
-                let output = String::from_utf8(cmd_output.stdout)?;
-
-                grab_cargo_diags(&output)?
-            }
-            BuildMode::Rustc(rustc) => {
-                let mut cmd = self.cmd(rustc);
-                cmd.args(["--edition", "2021", "--error-format=json"]);
-                cmd.arg(&inner.input_path);
-
-                for env in &inner.env {
-                    cmd.env(&env.key, &env.value);
-                }
-
-                let output = cmd.output()?.stderr;
-                let output = String::from_utf8(output)?;
-
-                grab_rustc_diags(&output)?
-            }
-            BuildMode::Script(script_path) => {
-                let mut cmd = self.cmd(script_path);
-
-                cmd.args(&inner.extra_args);
-
-                for env in &inner.env {
-                    cmd.env(&env.key, &env.value);
-                }
-
-                cmd.env("MINIMIZE_LINTS", "1");
-
-                let outputs = cmd
-                    .output()
-                    .with_context(|| format!("spawning script: `{cmd:?}`"))?;
-
-                let stderr = String::from_utf8(outputs.stderr)?;
-                let stdout = String::from_utf8(outputs.stdout)?;
-
-                let (output, mode) = read_script_output(&stdout, &stderr);
-
-                match mode {
-                    LintMode::Rustc => grab_rustc_diags(output)?,
-                    LintMode::Cargo => grab_cargo_diags(output)?,
-                }
-            }
-        };
+        let diags = messages
+            .into_iter()
+            .filter(|msg| msg.reason == "compiler-message")
+            .filter_map(|msg| msg.message)
+            .collect();
 
         let mut suggestions = Vec::new();
         for cargo_msg in &diags {
